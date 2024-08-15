@@ -18,26 +18,37 @@ async function showWebviewPanel(title, htmlContent) {
 }
 
 async function showNodeInstallationInstructions() {
+
     const htmlContent = `
     <!DOCTYPE html>
     <html>
         <head>
             <meta charset="UTF-8">
             <title>Node.js Installation Instructions</title>
+            <style>
+            .alert {
+            background: #f90000aa;
+            padding: 15px;
+            font-weight: bold;
+            font-size: 20px;
+            }
+
+            blockquote {
+            background: black;
+            }
+            </style>
         </head>
         <body>
-            <h1>Manual Node.js Installation</h1>
-            <p>Please follow the instructions below to install Node.js manually:</p>
-            <ul>
-                <li>Visit the <a href="https://nodejs.org/">Node.js official website</a>.</li>
-                <li>Download the installer for your operating system.</li>
-                <li>Follow the installation instructions provided on the website.</li>
-            </ul>
-            <p>After installing Node.js, please restart VSCode.</p>
+        <div class="alert">
+        ERROR: Node.js is missing!</div>
+        <p>
+        We didn't find Node.js installed on your computer. Follow <a href="https://4geeks.com/how-to/install-nvm-on-every-operating-system">this guide</a> to install Node in your system!
+        </p>
         </body>
     </html>`;
     showWebviewPanel('Node.js Installation Instructions', htmlContent);
 }
+
 
 async function showLearnpackInstallationInstructions() {
     const htmlContent = `
@@ -46,21 +57,52 @@ async function showLearnpackInstallationInstructions() {
         <head>
             <meta charset="UTF-8">
             <title>LearnPack Installation Instructions</title>
+            <style>
+            .alert {
+            background: #f90000aa;
+            padding: 15px;
+            font-weight: bold;
+            font-size: 20px;
+            }
+
+            blockquote {
+            background: black;
+            }
+            </style>
         </head>
         <body>
-            <h1>Manual LearnPack Installation</h1>
+        <div class="alert">
+        ERROR: LearnPack CLI is missing!</div>
+        <p>
+        We didn't find the LearnPack command line tool in your computer, we tried installing it automatically without success.
+        </p>
             <p>Please follow the instructions below to install LearnPack manually:</p>
-            <ul>
+            <h2> Steps to manually install learnpack cli</h2>
+            <ol>
                 <li>Open your terminal or command prompt.</li>
                 <li>Run the following command: 
                 <code>npm i -g @learnpack/learnpack</code>
                 </li>
-                </ul>
+                <li>Verify LearnPack installation running the following command: 
+                <code>learnpack --version</code>
+                <p>
+                You should see and output like the following:
                 
-            <p>After installing LearnPack, run the following command</p>
-            <pre>
+                <code>
+                 @learnpack/learnpack/4.0.7 win32-x64 node-v20.16.0
+                </code>
+                
+                </p>
+                </li>
+                <li>
+                <p>After installing LearnPack, run the following command:
             <code>learnpack start</code>
-            </pre>
+            </p>
+                </li>
+                </ol>
+                
+            
+           
         </body>
     </html>`;
     showWebviewPanel('LearnPack Installation Instructions', htmlContent);
@@ -70,10 +112,11 @@ async function checkNodeInstallation() {
     try {
         const { stdout, stderr } = await execAsync('node -v');
         if (stderr) throw Error("Node is not installed!");
-        // vscode.window.showInformationMessage(`Node.js is installed. Version: ${stdout}`);
+        return true
     } catch (error) {
         vscode.window.showErrorMessage('Node.js is not installed. Attempting to install Node.js...');
-        await installNode();
+        const result = await installNode();
+        return result
     }
 }
 
@@ -93,9 +136,11 @@ async function installNode() {
     try {
         await execAsync(installCommand);
         vscode.window.showInformationMessage('Node.js installed successfully. Please restart VSCode.');
+        return true
     } catch (error) {
         vscode.window.showErrorMessage(`Failed to install Node.js. Please install it manually from https://nodejs.org/. Error: ${error.stderr}`);
         showNodeInstallationInstructions();
+        return false
     }
 }
 
@@ -103,21 +148,27 @@ async function checkLearnpackInstallation() {
     try {
         const { stdout, stderr } = await execAsync('npm list -g @learnpack/learnpack');
         if (stderr) throw Error("LearnPack is not installed!");
+
+        return true
     } catch (error) {
-        vscode.window.showErrorMessage('@learnpack/learnpack is not installed. Attempting to install @learnpack/learnpack globally, just wait a minute!');
-        await installLearnpack();
+        vscode.window.setStatusBarMessage("💻 Attempting to install LearnPack CLI automatically!");
+        const result = await installLearnpack();
+        return result
     }
 }
 
 async function installLearnpack() {
     try {
-        throw Error("testing bor")
         await execAsync('npm i -g @learnpack/learnpack');
-        vscode.window.showInformationMessage('@learnpack/learnpack installed successfully.');
+        vscode.window.showInformationMessage('LearnPack CLI installed successfully!');
+        vscode.window.setStatusBarMessage("")
+        return true
     } catch (error) {
-        vscode.window.showErrorMessage(`Failed to install @learnpack/learnpack. Please install it manually, run: \nnpm i -g @learnpack/learnpack`);
+        vscode.window.showErrorMessage(`We couldn't install LearnPack CLI automatically. 😥`);
         showLearnpackInstallationInstructions();
         logger.debug(error);
+        vscode.window.setStatusBarMessage("")
+        return false
     }
 }
 

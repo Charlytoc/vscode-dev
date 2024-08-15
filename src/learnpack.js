@@ -57,9 +57,14 @@ const _emit = (name, data=null) => {
  */
 const init = async () => {
     // Check Node.js and Learnpack installation
-    await onboardingManager.checkNodeInstallation();
-    await onboardingManager.checkLearnpackInstallation();
-    
+    const nodeInstalled = await onboardingManager.checkNodeInstallation();
+
+    if (!nodeInstalled) return
+
+    const learnpackInstalled = await onboardingManager.checkLearnpackInstallation();
+
+    if (!learnpackInstalled) return
+
     if(!fs.existsSync(`${extension.workspaceRoot}/.learn`) && !fs.existsSync(`${extension.workspaceRoot}/learn.json`)){
         throw Error("No LearnPack package was found on this workspace, make sure you have a learn.json file or at least a ./learn folder on your root");
     }
